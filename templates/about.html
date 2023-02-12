@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript">
+// <![CDATA[
+    var colours=new Array("#FC4B64", "#FC92A1", "#ffe135", "#FFFFE0", "#FC5C74"); // what colour are the blobs
+    var speed=50; // speed of animation, lower is faster
+    var blobs=30; // how many blobs are in the jar
+    var size=80; // maximum blob size
+
+    /***************************\
+    *   Blobs in a Jar Effect   *
+    *(c)2012-20 mf2fm web-design*
+    *  http://www.mf2fm.com/rv  *
+    * DON'T EDIT BELOW THIS BOX *
+    \***************************/
+
+    var div;
+    var xpos=new Array();
+    var ypos=new Array();
+    var zpos=new Array();
+    var dx=new Array();
+    var dy=new Array();
+    var dz=new Array();
+    var blob=new Array(); 
+    var swide=800;
+    var sleft=0;
+    var shigh=600;
+    var sdown=0;
+    var x=400;
+    var y=300; 
+
+    function addLoadEvent(funky) {
+      var oldonload=window.onload;
+      if (typeof(oldonload)!='function') window.onload=funky;
+      else window.onload=function() {
+        if (oldonload) oldonload();
+        funky();
+      }
+    }
+
+    addLoadEvent(fill_the_jar);
+
+    function fill_the_jar() {
+      var i, dvs;
+      div=document.createElement('div');
+      dvs=div.style;
+      dvs.position='fixed';
+      dvs.left='0px';
+      dvs.top='0px';
+      dvs.width='1px';
+      dvs.height='1px';
+      document.body.appendChild(div);
+      set_scroll();
+      set_width();
+      for (i=0; i<blobs; i++) {
+        add_blob(i);
+        jamjar(i);
+      }
+    }
+
+    function add_blob(ref) {
+      var dv, sy;
+      dv=document.createElement('div');
+      sy=dv.style;
+      sy.width=size/2+"px";
+      sy.height=size/2+"px";
+      sy.borderRadius="50%";
+      sy.position='absolute';
+      sy.backgroundColor=colours[ref%colours.length];
+      do {
+        ypos[ref]=Math.floor(shigh*Math.random());
+        xpos[ref]=Math.floor(swide*Math.random());
+      }
+      while (checkity(ref));
+      zpos[ref]=Math.random()*size/4;
+      dy[ref]=(0.5+Math.random())*(Math.random()>.5?2:-2);
+      dx[ref]=(0.5+Math.random())*(Math.random()>.5?2:-2);
+      dz[ref]=(0.5+Math.random())*(Math.random()>.5?.2:-.2);
+      blob[ref]=dv;
+      div.appendChild(blob[ref]);
+      set_blob(ref);
+    }
+
+    function checkity(j) {
+      var i, r=false;
+      if (j) for (var i=0; i<j; i++) {
+        if (Math.abs(xpos[i]-xpos[j])<size && Math.abs(ypos[i]-ypos[j])<size) r=true;
+      }
+      return (r);
+    }
+
+    function rejig(ref, xy) {
+      if (xy=='y') {
+      dx[ref]=(0.5+Math.random())*sign(dx[ref]);
+        dy[ref]=(0.5+Math.random())*-sign(dy[ref]);
+      }
+      else {
+        dx[ref]=(0.5+Math.random())*-sign(dx[ref]);
+        dy[ref]=(0.5+Math.random())*sign(dy[ref]);
+      }
+    }
+
+    function sign(a) {
+      if (a<0) return (-2);
+      else if (a>0) return (2);
+      else return (0);
+    }
+
+    function set_blob(ref) {
+      var sy;
+      sy=blob[ref].style;
+      sy.top=ypos[ref]-size/4+'px';
+      sy.left=xpos[ref]-size/4+'px';
+        sy.filter='blur('+zpos[ref]+'px)';
+    }
+
+    function jamjar(ref) {
+      var i;
+      if (ypos[ref]+dy[ref]<-size/2 || ypos[ref]+dy[ref]>shigh+size/2) rejig(ref, 'y');
+      else if (xpos[ref]+dx[ref]<-size/2 || xpos[ref]+dx[ref]>swide+size/2) rejig(ref, 'x');
+      else if (Math.abs(ypos[ref]+dy[ref]-y)<size/2 && Math.abs(xpos[ref]+dx[ref]-x)<size/2 && zpos[ref]<size/20) {
+        if (Math.abs(ypos[ref]+dy[ref]-y)>Math.abs(xpos[ref]+dx[ref]-x)) dy[ref]=-dy[ref];
+        else dx[ref]=-dx[ref];
+      }
+      else for (i=0; i<blobs; i++) {
+        if (i==ref) continue;
+        if (Math.abs(ypos[ref]+dy[ref]-ypos[i])<size/2 && Math.abs(xpos[ref]+dx[ref]-xpos[i])<size/2 && Math.abs(zpos[ref]-zpos[i])<size/20) {
+          if (Math.abs(ypos[ref]+dy[ref]-ypos[i])>Math.abs(xpos[ref]+dx[ref]-xpos[i])) dy[ref]=-dy[ref];
+          else dx[ref]=-dx[ref];
+        }
+      }
+      ypos[ref]+=dy[ref];
+      xpos[ref]+=dx[ref];
+      if (zpos[ref]+dz[ref]<0) dz[ref]=Math.abs(dz[ref]);
+      else if (zpos[ref]+dz[ref]>size/4) dz[ref]=-Math.abs(dz[ref]);
+      zpos[ref]+=dz[ref];
+      set_blob(ref);
+      setTimeout("jamjar("+ref+")", speed);
+    }
+
+    document.onmousemove=mouse;
+    function mouse(e) {
+      if (e) {
+        y=e.pageY;
+        x=e.pageX;
+      }
+      else {
+        set_scroll();
+        y=event.y+sdown;
+        x=event.x+sleft;
+      }
+    }
+
+    document.onscroll=set_scroll;
+    function set_scroll() {
+      if (typeof(self.pageYOffset)=="number") {
+        sdown=self.pageYOffset;
+        sleft=self.pageXOffset;
+      }
+      else if (document.body.scrollTop || document.body.scrollLeft) {
+        sdown=document.body.scrollTop;
+        sleft=document.body.scrollLeft;
+      }
+      else if (document.documentElement && (document.documentElement.scrollTop || document.documentElement.scrollLeft)) {
+        sleft=document.documentElement.scrollLeft;
+      sdown=document.documentElement.scrollTop;
+      }
+      else {
+        sdown=0;
+        sleft=0;
+      }
+    }
+
+    window.onresize=set_width;
+    function set_width() {
+      var sw_min=999999;
+      var sh_min=999999;
+      if (document.documentElement && document.documentElement.clientWidth) {
+        if (document.documentElement.clientWidth>0) sw_min=document.documentElement.clientWidth;
+        if (document.documentElement.clientHeight>0) sh_min=document.documentElement.clientHeight;
+      }
+      if (typeof(self.innerWidth)!="undefined" && self.innerWidth) {
+        if (self.innerWidth>0 && self.innerWidth<sw_min) sw_min=self.innerWidth;
+        if (self.innerHeight>0 && self.innerHeight<sh_min) sh_min=self.innerHeight;
+      }
+      if (document.body.clientWidth) {
+        if (document.body.clientWidth>0 && document.body.clientWidth<sw_min) sw_min=document.body.clientWidth;
+        if (document.body.clientHeight>0 && document.body.clientHeight<sh_min) sh_min=document.body.clientHeight;
+      }
+      if (sw_min==999999 || sh_min==999999) {
+        sw_min=800;
+        sh_min=600;
+      }
+      swide=sw_min;
+      shigh=sh_min;
+    }
+// ]]>
+</script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+    <meta name="description" content="Lonely? Need a small token of appreciation? I got you. With a simple tap of a button, you can get a heartfelt message that will bring a smile to your face.">
+    <meta name="author" content="Meryem Ben yahia">
+    <style>
+      @import url('https://fonts.cdnfonts.com/css/sf-pixelate');
+
+      a:link {
+      color: white;
+      background-color: transparent;
+      text-decoration: none;
+      }
+      a:visited {
+      color: pink;
+      background-color: transparent;
+      text-decoration: none;
+      }
+      a:hover {
+      color: red;
+      background-color: transparent;
+      text-decoration: underline;
+      }
+      a:active {
+      color: white;
+      background-color: transparent;
+      text-decoration: underline;
+      }
+
+
+      img {
+        transition: transform 4s ease-in-out;
+      }
+      img:hover {
+        transform: rotate(360deg);
+      }
+
+      header{
+        padding: 30px;
+        text-align: center;
+      }
+
+      nav {
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+        width: auto;
+        background: #FC92A1;
+        padding: 1%;
+        display: inline;
+        text-align: center;
+      }
+
+      /* Style the list inside the menu */
+      nav ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      section{
+        text-align: center;
+      }
+
+      h1 {
+        color: #FC4B64;
+        font-size:40px;
+      }
+      h3 {
+        color: #808080;
+      }
+
+
+      body {
+        background-image: linear-gradient(white, #FFEFF1, white, white);
+        font-family: 'SF Pixelate', sans-serif;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+
+      p {
+        font-size: 16px;
+        color: #5A5A5A;
+        line-height: 1.5;
+        text-align: justify;
+        padding: 20px;
+      }
+
+      .container {
+        background-color: #ffffff;
+        box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .2); 
+        top: 50%;
+        left: 50%;
+        border-radius: 5px;
+        background: inherit;
+        overflow: hidden;
+      }
+
+      .container:before {
+        content: "";
+        position: relative;
+        background: inherit;
+        z-index: -1;
+        top: -10px;
+        bottom: -10px;
+        left: -10px;
+        right: -10px;
+        box-shadow: inset 0 0 2000px rgba(255, 255, 255, .5);
+        filter: blur(50px);
+        margin: -20px;
+      }
+
+      
+
+
+      }
+    </style>
+
+  </head>
+
+  <body>
+      <section>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/credits">Credit</a>
+        <a href="https://www.buymeacoffee.com/mebenyahia">🍫 Buy me chocolate </a>
+      </nav>
+      <header>
+      <h1>Love Button</h1>
+      <h3>About</h3>
+      <div class="container">
+      <p>
+        <br>
+        Valentine's Day is often associated with love, but for many people it can also be a time of loneliness. You may not have anyone to tell you nice things but I've got you! Love can mean many things: it can be the love you have for your friends, your family, your special one and even the love you have for yourself.
+        <br>
+        Exactly one year ago I thought about how cool it'd be to have a love button that one can click or tap to hear something nice, and now this year, when February 2023 rolled around and I needed a pick me up; I came across a scratch file with this idea on it and decided to work on it on a whim. I had a blast creating it, and experimenting with different prompts and tests. It's probably one of the cringiest or wholesomest things I ever created, but I hope that this little wonky app with a very uncanny valley voice for each prompt reminds you to love yourself, to love others, and that you matter. 
+        <br>
+        <i> --With lots of love and a pinch of hope that this makes your day! </i>
+      </p>
+      </div>
+
+      </section>
+
+    </div>
+  </body>
+</html>
