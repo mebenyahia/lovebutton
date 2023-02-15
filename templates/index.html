@@ -143,7 +143,7 @@
       let messageIndex = 0;
       function displayMessage() {
         const messages = {{ messages | tojson }};
-        const message = messages[messageIndex % messages.length];
+        const message = messages[Math.floor(Math.random() * messages.length)];
         document.getElementById("message").innerHTML = message.message;
         const audio = new Audio(`/static/audio/${message.audio}`);
         audio.play();
