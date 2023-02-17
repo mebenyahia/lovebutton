@@ -141,13 +141,22 @@
     </style>
     <script>
       let messageIndex = 0;
+      let buttonDisabled = false;
+
       function displayMessage() {
         const messages = {{ messages | tojson }};
         const message = messages[Math.floor(Math.random() * messages.length)];
-        document.getElementById("message").innerHTML = message.message;
-        const audio = new Audio(`/static/audio/${message.audio}`);
-        audio.play();
-        messageIndex++;
+        
+        if (!buttonDisabled) {
+          const audio = new Audio(`/static/audio/${message.audio}`);
+          audio.play();
+          document.getElementById("message").innerHTML = message.message;
+          buttonDisabled = true;
+          setTimeout(() => {
+            document.getElementById("message").innerHTML = "";
+            buttonDisabled = false;
+          }, 25000);
+        }
       }
     </script>
 
